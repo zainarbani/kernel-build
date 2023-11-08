@@ -15,6 +15,10 @@ on:
         description: 'KERNEL_DEFCONFIG'
         required: true
         default: 'rosemary_defconfig'
+      KERNEL_HOTFIX:
+        description: 'KERNEL_HOTFIX'
+        required: false
+        default: 'N/A'
 
 jobs:
   build:
@@ -52,6 +56,8 @@ jobs:
         export TZ="Asia/Jakarta"
         export DATE=$(date "+%Y%m%d-%H%M")
         echo "BUILD_DATE=$(date "+%Y%m%d%H%M")" >> $GITHUB_ENV
+        echo "KERNEL_VER=$(make kernelversion)" >> $GITHUB_ENV
+        echo "CLANG_VER=$(clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')" >> $GITHUB_ENV
         export ARCH=arm64
         export KBUILD_BUILD_HOST=builder
         export KBUILD_BUILD_USER=zainarbani
@@ -99,11 +105,16 @@ jobs:
         disable_web_page_preview: true
         message: |
           <b>OverHeat-Kernel Update</b>
+
+          <b>Build Date: </b>${{ env.BUILD_DATE }}
           
           <a href="https://github.com/${{ github.repository }}/releases/tag/${{ env.BUILD_DATE }}">Download</a>
-
-          <a href="${{ github.event.inputs.KERNEL_REPO }}/commits/${{ github.event.inputs.KERNEL_BRANCH }}">Changelogs</a>
           
+          <a href="${{ github.event.inputs.KERNEL_REPO }}/commits/${{ github.event.inputs.KERNEL_BRANCH }}">Changelogs</a>
+
+          <b>Hotfix: </b>${{ github.event.inputs.KERNEL_HOTFIX }}
+
           <b>Config: </b>${{ github.event.inputs.KERNEL_DEFCONFIG }}
-          <b>Build Date: </b>${{ env.BUILD_DATE }}
+          <b>Kernel Ver: </b>${{ env.KERNEL_VER }}
+          <b>Clang Ver: </b>${{ env.CLANG_VER }}
           <b>Maintainer: </b>@AnotherZain
