@@ -113,7 +113,8 @@ jobs:
           
           <a href="${{ github.event.inputs.KERNEL_REPO }}/commits/${{ github.event.inputs.KERNEL_BRANCH }}">Changelogs</a>
 
-          <b>Hotfix: </b>${{ github.event.inputs.KERNEL_HOTFIX }}
+          <b>Hotfix:</b>
+          ${{ github.event.inputs.KERNEL_HOTFIX }}
 
           <b>Config: </b>${{ github.event.inputs.KERNEL_DEFCONFIG }}
           <b>Kernel Ver: </b>${{ env.KERNEL_VER }}
