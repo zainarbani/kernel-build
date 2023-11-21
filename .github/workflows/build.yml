@@ -39,7 +39,7 @@ jobs:
     - name: Prepare TC
       run: |
         mkdir -p $GITHUB_WORKSPACE/project/clang
-        CLANG_URL=$(curl -Ls https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-14-link.txt)
+        CLANG_URL=$(curl -Ls https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-main-link.txt)
         aria2c $CLANG_URL &> /dev/null
         tar -C $GITHUB_WORKSPACE/project/clang/ -zxf ${CLANG_URL##*/}
 
