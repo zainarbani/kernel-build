@@ -47,7 +47,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/project
         git clone -b ${{ github.event.inputs.KERNEL_BRANCH }} ${{ github.event.inputs.KERNEL_REPO }} linux --recurse-submodules --depth=1 &> /dev/null
-        git clone -b master https://github.com/zainarbani/AnyKernel3 AnyKernel3 --depth=1 &> /dev/null
+        git clone -b rosemary-4.19 https://github.com/zainarbani/AnyKernel3 AnyKernel3 --depth=1 &> /dev/null
 
     - name: Building Kernel
       run: |
