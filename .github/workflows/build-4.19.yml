@@ -64,10 +64,12 @@ jobs:
         export KBUILD_BUILD_HOST=builder
         export KBUILD_BUILD_USER=zainarbani
         export KBUILD_COMPILER_STRING="$(clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')"
-        echo "-OverHeat" > localversion
+        echo "-Amogus" > localversion
         make O=out ARCH=$ARCH ${{ github.event.inputs.KERNEL_DEFCONFIG }}
         make -j$(nproc --all) O=out CC=clang ARCH=$ARCH CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 LD=ld.lld NM=llvm-nm AR=llvm-ar OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump
-        cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/project/Image.gz-dtb
+        cp out/arch/arm64/boot/Image.gz $GITHUB_WORKSPACE/project/Image.gz
+        curl -s "https://android.googlesource.com/platform/system/libufdt/+/refs/heads/master/utils/src/mkdtboimg.py?format=TEXT" | base64 --decode > mkdtboimg.py
+        python3 mkdtboimg.py create $GITHUB_WORKSPACE/project/dtbnew out/arch/arm64/boot/dts/mediatek/mt6785.dtb
         make clean
         git restore drivers/input/touchscreen/mediatek/ft3418_i2c/include/firmware/fw_sample.i
         wget -O ksu_4.19.patch https://gist.githubusercontent.com/zainarbani/922deba9987164bbb2f900991e8403f2/raw/568d0999b4dcd957cefdf2a08b2ef4b62f0fe637/ksu_4.19.patch
@@ -77,23 +79,24 @@ jobs:
         echo "CONFIG_KSU=y" >> arch/arm64/configs/rosemary_defconfig
         make O=out ARCH=$ARCH ${{ github.event.inputs.KERNEL_DEFCONFIG }}
         make -j$(nproc --all) O=out CC=clang ARCH=$ARCH CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 LD=ld.lld NM=llvm-nm AR=llvm-ar OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump
-        cp out/arch/arm64/boot/Image.gz-dtb $GITHUB_WORKSPACE/project/Image.gz-dtb-ksu
+        cp out/arch/arm64/boot/Image.gz $GITHUB_WORKSPACE/project/Image.gz-ksu
 
     - name: Prepare AK3
       run: |
         cd $GITHUB_WORKSPACE/project/AnyKernel3
-        cp $GITHUB_WORKSPACE/project/Image.gz-dtb Image.gz-dtb
-        zip -r9 $GITHUB_WORKSPACE/project/OverHeat-dev.zip -- *
-        cp $GITHUB_WORKSPACE/project/Image.gz-dtb-ksu Image.gz-dtb
-        zip -r9 $GITHUB_WORKSPACE/project/OverHeat-dev-ksu.zip -- *
+        cp $GITHUB_WORKSPACE/project/Image.gz Image.gz
+        cp $GITHUB_WORKSPACE/project/dtbnew dtbnew
+        zip -r9 $GITHUB_WORKSPACE/project/Amogus.zip -- *
+        cp -f $GITHUB_WORKSPACE/project/Image.gz-ksu Image.gz
+        zip -r9 $GITHUB_WORKSPACE/project/Amogus-ksu.zip -- *
         
     - name: Upload Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          ${{ github.workspace }}/project/OverHeat-dev.zip
-          ${{ github.workspace }}/project/OverHeat-dev-ksu.zip
-        name: OverHeat-${{ env.BUILD_DATE }}
+          ${{ github.workspace }}/project/Amogus.zip
+          ${{ github.workspace }}/project/Amogus-ksu.zip
+        name: Amogus-${{ env.BUILD_DATE }}
         tag_name: ${{ env.BUILD_DATE }}
         body: |
           Repo: ${{ github.event.inputs.KERNEL_REPO }}
@@ -110,7 +113,7 @@ jobs:
         format: html
         disable_web_page_preview: true
         message: |
-          <b>OverHeat-Kernel Update</b>
+          <b>Amogus-Kernel Update</b>
 
           <b>Build Date: </b>${{ env.BUILD_DATE }}
           
