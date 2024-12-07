@@ -72,8 +72,6 @@ jobs:
         python3 mkdtboimg.py create $GITHUB_WORKSPACE/project/dtbnew out/arch/arm64/boot/dts/mediatek/mt6785.dtb
         make clean
         git restore drivers/input/touchscreen/mediatek/ft3418_i2c/include/firmware/fw_sample.i
-        wget -O ksu_4.19.patch https://gist.githubusercontent.com/zainarbani/922deba9987164bbb2f900991e8403f2/raw/568d0999b4dcd957cefdf2a08b2ef4b62f0fe637/ksu_4.19.patch
-        git apply ksu_4.19.patch || exit
         curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v$KSU
         echo "KSU Version: $KSU"
         echo "CONFIG_KSU=y" >> arch/arm64/configs/rosemary_defconfig
