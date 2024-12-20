@@ -15,6 +15,18 @@ on:
         description: 'KERNEL_DEFCONFIG'
         required: true
         default: 'rosemary_defconfig'
+      KERNELSU_REPO:
+        description: 'KERNELSU_REPO'
+        required: true
+        default: 'https://github.com/rifsxd/KernelSU-Next'
+      KERNELSU_BRANCH:
+        description: 'KERNELSU_BRANCH'
+        required: true
+        default: 'next'
+      KERNELSU_VER:
+        description: 'KERNELSU_VER'
+        required: true
+        default: 'v1.0.2-R12'
       KERNEL_HOTFIX:
         description: 'KERNEL_HOTFIX'
         required: false
@@ -55,11 +67,9 @@ jobs:
         PATH=$GITHUB_WORKSPACE/project/clang/bin:$PATH
         export TZ="Asia/Jakarta"
         export DATE=$(date "+%Y%m%d-%H%M")
-        export KSU="0.9.5"
         echo "BUILD_DATE=$(date "+%Y%m%d%H%M")" >> $GITHUB_ENV
         echo "KERNEL_VER=$(make kernelversion)" >> $GITHUB_ENV
         echo "CLANG_VER=$(clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')" >> $GITHUB_ENV
-        echo "KSU_VER=$KSU" >> $GITHUB_ENV
         export ARCH=arm64
         export KBUILD_BUILD_HOST=builder
         export KBUILD_BUILD_USER=zainarbani
@@ -72,8 +82,7 @@ jobs:
         python3 mkdtboimg.py create $GITHUB_WORKSPACE/project/dtbnew out/arch/arm64/boot/dts/mediatek/mt6785.dtb
         make clean
         git restore drivers/input/touchscreen/mediatek/ft3418_i2c/include/firmware/fw_sample.i
-        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v$KSU
-        echo "KSU Version: $KSU"
+        curl -LSs ${{ github.event.inputs.KERNELSU_REPO }}/${{ github.event.inputs.KERNELSU_BRANCH }}/kernel/setup.sh | bash -s ${{ github.event.inputs.KERNELSU_VER }}
         echo "CONFIG_KSU=y" >> arch/arm64/configs/rosemary_defconfig
         make O=out ARCH=$ARCH ${{ github.event.inputs.KERNEL_DEFCONFIG }}
         make -j$(nproc --all) O=out CC=clang ARCH=$ARCH CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 LD=ld.lld NM=llvm-nm AR=llvm-ar OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump
@@ -86,14 +95,14 @@ jobs:
         cp $GITHUB_WORKSPACE/project/dtbnew dtbnew
         zip -r9 $GITHUB_WORKSPACE/project/Amogus.zip -- *
         cp -f $GITHUB_WORKSPACE/project/Image.gz-ksu Image.gz
-        zip -r9 $GITHUB_WORKSPACE/project/Amogus-ksu.zip -- *
+        zip -r9 $GITHUB_WORKSPACE/project/Amogus-KSU-Next.zip -- *
         
     - name: Upload Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
           ${{ github.workspace }}/project/Amogus.zip
-          ${{ github.workspace }}/project/Amogus-ksu.zip
+          ${{ github.workspace }}/project/Amogus-KSU-Next.zip
         name: Amogus-${{ env.BUILD_DATE }}
         tag_name: ${{ env.BUILD_DATE }}
         body: |
@@ -125,5 +134,5 @@ jobs:
           <b>Config: </b>${{ github.event.inputs.KERNEL_DEFCONFIG }}
           <b>Kernel Ver: </b>${{ env.KERNEL_VER }}
           <b>Clang Ver: </b>${{ env.CLANG_VER }}
-          <b>KernelSU Ver: </b>${{ env.KSU_VER }}
+          <b>KSU-Next Ver: </b>${{ github.event.inputs.KERNELSU_VER }}
           <b>Maintainer: </b>@AnotherZain
