@@ -15,16 +15,8 @@ on:
         description: 'KERNEL_DEFCONFIG'
         required: true
         default: 'rosemary_defconfig'
-      KERNELSU_REPO:
-        description: 'KERNELSU_REPO'
-        required: true
-        default: 'https://github.com/rifsxd/KernelSU-Next'
-      KERNELSU_BRANCH:
-        description: 'KERNELSU_BRANCH'
-        required: true
-        default: 'next'
-      KERNELSU_VER:
-        description: 'KERNELSU_VER'
+      KSUNEXT_VERSION:
+        description: 'KSUNEXT_VERSION'
         required: true
         default: 'v1.0.2-R12'
       KERNEL_HOTFIX:
@@ -82,7 +74,7 @@ jobs:
         python3 mkdtboimg.py create $GITHUB_WORKSPACE/project/dtbnew out/arch/arm64/boot/dts/mediatek/mt6785.dtb
         make clean
         git restore drivers/input/touchscreen/mediatek/ft3418_i2c/include/firmware/fw_sample.i
-        curl -LSs ${{ github.event.inputs.KERNELSU_REPO }}/${{ github.event.inputs.KERNELSU_BRANCH }}/kernel/setup.sh | bash -s ${{ github.event.inputs.KERNELSU_VER }}
+        curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s ${{ github.event.inputs.KSUNEXT_VERSION }}
         echo "CONFIG_KSU=y" >> arch/arm64/configs/rosemary_defconfig
         make O=out ARCH=$ARCH ${{ github.event.inputs.KERNEL_DEFCONFIG }}
         make -j$(nproc --all) O=out CC=clang ARCH=$ARCH CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 LD=ld.lld NM=llvm-nm AR=llvm-ar OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump
@@ -125,6 +117,8 @@ jobs:
           <b>Build Date: </b>${{ env.BUILD_DATE }}
           
           <a href="https://github.com/${{ github.repository }}/releases/tag/${{ env.BUILD_DATE }}">Download</a>
+
+          <a href="https://github.com/rifsxd/KernelSU-Next/releases/tag/${{ github.event.inputs.KSUNEXT_VERSION }}">Download KSU app</a>
           
           <a href="${{ github.event.inputs.KERNEL_REPO }}/commits/${{ github.event.inputs.KERNEL_BRANCH }}">Changelogs</a>
 
@@ -134,5 +128,5 @@ jobs:
           <b>Config: </b>${{ github.event.inputs.KERNEL_DEFCONFIG }}
           <b>Kernel Ver: </b>${{ env.KERNEL_VER }}
           <b>Clang Ver: </b>${{ env.CLANG_VER }}
-          <b>KSU-Next Ver: </b>${{ github.event.inputs.KERNELSU_VER }}
+          <b>KSU-Next Ver: </b>${{ github.event.inputs.KSUNEXT_VERSION }}
           <b>Maintainer: </b>@AnotherZain
