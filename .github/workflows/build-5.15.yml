@@ -47,13 +47,14 @@ jobs:
         git clone -b ${{ github.event.inputs.KERNEL_BRANCH }} ${{ github.event.inputs.KERNEL_REPO }} linux --depth=1 &> /dev/null
         cd linux
         git clone -b ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }} ${{ github.event.inputs.BUILD_SCRIPT_REPO }} kernel_build --depth=1 &> /dev/null
+        echo "CLANG_VER=$(./kernel_build/toolchain/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')" >> $GITHUB_ENV
+        echo "KERNEL_VER=$(make kernelversion)" >> $GITHUB_ENV
+        echo ${{ env.CLANG_VER }}
 
     - name: Building Kernel
       run: |
         cd $GITHUB_WORKSPACE/project/linux
         chmod +x kernel_build/build.sh && ./kernel_build/build.sh
-        echo "CLANG_VER=$(clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')" >> $GITHUB_ENV
-        echo "KERNEL_VER=$(make kernelversion)" >> $GITHUB_ENV
         
     - name: Upload Release
       uses: softprops/action-gh-release@v1
