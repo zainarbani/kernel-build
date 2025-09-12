@@ -47,8 +47,6 @@ jobs:
         git clone -b ${{ github.event.inputs.KERNEL_BRANCH }} ${{ github.event.inputs.KERNEL_REPO }} linux --depth=1 &> /dev/null
         cd linux
         git clone -b ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }} ${{ github.event.inputs.BUILD_SCRIPT_REPO }} kernel_build --depth=1 &> /dev/null
-        ls $GITHUB_WORKSPACE/project
-        ls $GITHUB_WORKSPACE
 
     - name: Building Kernel
       run: |
@@ -77,3 +75,24 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Update TG
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.CHAT_ID }}
+        token: ${{ secrets.BOT_TOKEN }}
+        format: html
+        disable_web_page_preview: true
+        message: |
+          <b>Kernel Update</b>
+
+          <b>Build Date: </b>${{ env.BUILD_DATE }}
+          
+          <a href="https://github.com/${{ github.repository }}/releases/tag/${{ env.BUILD_DATE }}">Download</a>
+          
+          <a href="${{ github.event.inputs.KERNEL_REPO }}/commits/${{ github.event.inputs.KERNEL_BRANCH }}">Changelogs</a>
+
+
+          <b>Device: </b>${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}
+          <b>Kernel Ver: </b>${{ env.KERNEL_VER }}
+          <b>Clang Ver: </b>${{ env.CLANG_VER }}
+          <b>Info: </b>@AnotherZain
