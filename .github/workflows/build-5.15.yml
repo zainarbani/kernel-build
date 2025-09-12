@@ -67,8 +67,8 @@ jobs:
           Device: ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}
           Repo: ${{ github.event.inputs.KERNEL_REPO }}
           Branch: ${{ github.event.inputs.KERNEL_BRANCH }}
-          Notes:\n
-          ${{ github.event.inputs.BUILD_NOTES }
+          Notes:
+          ${{ github.event.inputs.BUILD_NOTES }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
