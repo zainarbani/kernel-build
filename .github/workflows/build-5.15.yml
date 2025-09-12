@@ -21,7 +21,7 @@ on:
         default: 'a54x'
       BUILD_NOTES:
         description: 'BUILD_NOTES'
-        required: true
+        required: false
         default: 'N\A'
 
 jobs:
