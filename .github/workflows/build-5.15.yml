@@ -19,6 +19,10 @@ on:
         description: 'BUILD_SCRIPT_BRANCH'
         required: true
         default: 'a54x'
+      BUILD_NOTES:
+        description: 'BUILD_NOTES'
+        required: true
+        default: 'N\A'
 
 jobs:
   build:
@@ -56,14 +60,15 @@ jobs:
       with:
         files: |
           ${{ github.workspace }}/project/linux/kernel_build/Kernel_a54x.tar
-          ${{ github.workspace }}/project/linux/kernel_build/Kernel_a54x.tar
+          ${{ github.workspace }}/project/linux/kernel_build/Kernel_a54x.zip
         name: ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}-${{ env.BUILD_DATE }}
         tag_name: ${{ env.BUILD_DATE }}
         body: |
           Device: ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}
           Repo: ${{ github.event.inputs.KERNEL_REPO }}
           Branch: ${{ github.event.inputs.KERNEL_BRANCH }}
-          Notes:
+          Notes:\n
+          ${{ github.event.inputs.BUILD_NOTES }
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
