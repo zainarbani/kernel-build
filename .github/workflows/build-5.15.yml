@@ -49,7 +49,6 @@ jobs:
         git clone -b ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }} ${{ github.event.inputs.BUILD_SCRIPT_REPO }} kernel_build --depth=1 &> /dev/null
         echo "CLANG_VER=$(../toolchain/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')" >> $GITHUB_ENV
         echo "KERNEL_VER=$(make kernelversion)" >> $GITHUB_ENV
-        echo ${{ env.CLANG_VER }}
 
     - name: Building Kernel
       run: |
@@ -68,6 +67,7 @@ jobs:
           Device: ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}
           Repo: ${{ github.event.inputs.KERNEL_REPO }}
           Branch: ${{ github.event.inputs.KERNEL_BRANCH }}
+          Clang: ${{ env.CLANG_VER }}
           Notes:
           ${{ github.event.inputs.BUILD_NOTES }}
       env:
