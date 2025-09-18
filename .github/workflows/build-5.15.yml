@@ -7,10 +7,6 @@ on:
         description: 'KERNEL_REPO'
         required: true
         default: 'https://github.com/zainarbani/kernel-5.15'
-      KERNEL_BRANCH:
-        description: 'KERNEL_BRANCH'
-        required: true
-        default: 'main'
       BUILD_SCRIPT_REPO:
         description: 'BUILD_SCRIPT_REPO'
         required: true
@@ -19,10 +15,6 @@ on:
         description: 'BUILD_SCRIPT_BRANCH'
         required: true
         default: 'a54x'
-      BUILD_NOTES:
-        description: 'BUILD_NOTES'
-        required: false
-        default: 'N\A'
 
 jobs:
   build:
@@ -30,67 +22,115 @@ jobs:
     runs-on: buildjet-8vcpu-ubuntu-2204
     permissions:
       contents: write
+    
+    strategy:
+      matrix:
+        branches: ['main', 'ksu-sus']
+
+    outputs:
+      CLANG_VER: ${{ steps.build_kernel.outputs.CLANG_VER }}
+      KERNEL_VER: ${{ steps.build_kernel.outputs.KERNEL_VER }}
+
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Prepare Env
-      run: |
-        export TZ="Asia/Jakarta"
-        export DATE=$(date "+%Y%m%d-%H%M")
-        echo "BUILD_DATE=$(date "+%Y%m%d%H%M")" >> $GITHUB_ENV
-        sudo apt update  &> /dev/null
-        sudo apt -y install libelf-dev dwarves &> /dev/null
-        mkdir -p $GITHUB_WORKSPACE/project
+      - name: Prepare Environment
+        run: |
+          mkdir -p ${{ github.workspace }}/builds/${{ matrix.branches }}
+          sudo apt update
+          sudo apt install -y libelf-dev dwarves
 
-    - name: Prepare Kernel
-      run: |
-        cd $GITHUB_WORKSPACE/project
-        git clone -b ${{ github.event.inputs.KERNEL_BRANCH }} ${{ github.event.inputs.KERNEL_REPO }} linux --depth=1 &> /dev/null
-        cd linux
-        git clone -b ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }} ${{ github.event.inputs.BUILD_SCRIPT_REPO }} kernel_build --depth=1 &> /dev/null
+      - name: Sync Kernel
+        run: |
+          cd ${{ github.workspace }}/builds/${{ matrix.branches }}
+          git clone --depth=1 -b ${{ matrix.branches }} ${{ github.event.inputs.KERNEL_REPO }} kernel
+          cd kernel
+          git clone --depth=1 -b ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }} ${{ github.event.inputs.BUILD_SCRIPT_REPO }} kernel_build
 
-    - name: Building Kernel
-      run: |
-        cd $GITHUB_WORKSPACE/project/linux
-        chmod +x kernel_build/build.sh && ./kernel_build/build.sh
-        echo "CLANG_VER=$(../toolchain/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')" >> $GITHUB_ENV
-        echo "KERNEL_VER=$(make kernelversion)" >> $GITHUB_ENV
+      - name: Build Kernel
+        id: build_kernel
+        run: |
+          cd ${{ github.workspace }}/builds/${{ matrix.branches }}/kernel
+          chmod +x kernel_build/build.sh
+          ./kernel_build/build.sh
+          KERNEL_VER=$(make kernelversion)
+          CLANG_VER=$(../toolchain/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')
+          echo "KERNEL_VER=${KERNEL_VER}" >> $GITHUB_OUTPUT
+          echo "CLANG_VER=${CLANG_VER}" >> $GITHUB_OUTPUT
 
-    - name: Upload Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          ${{ github.workspace }}/project/linux/kernel_build/Kernel_a54x.tar
-          ${{ github.workspace }}/project/linux/kernel_build/Kernel_a54x.zip
-        name: ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}-${{ env.BUILD_DATE }}
-        tag_name: ${{ env.BUILD_DATE }}
-        body: |
-          Device: ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}
-          Repo: ${{ github.event.inputs.KERNEL_REPO }}
-          Branch: ${{ github.event.inputs.KERNEL_BRANCH }}
-          Clang: ${{ env.CLANG_VER }}
-          Notes:
-          ${{ github.event.inputs.BUILD_NOTES }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Update TG
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.CHAT_ID }}
-        token: ${{ secrets.BOT_TOKEN }}
-        format: html
-        disable_web_page_preview: true
-        message: |
-          <b>Kernel Update</b>
-
-          <b>Build Date: </b>${{ env.BUILD_DATE }}
+      - name: Prepare Artifacts
+        run: |
+          cd ${{ github.workspace }}/builds/${{ matrix.branches }}/kernel/kernel_build
+          if [[ ${{ matrix.branches }} != "main" ]]; then
+            mv Kernel_a54x.tar Kernel_a54x-${{ matrix.branches }}.tar
+            mv Kernel_a54x.zip Kernel_a54x-${{ matrix.branches }}.zip
+          fi
           
-          <a href="https://github.com/${{ github.repository }}/releases/tag/${{ env.BUILD_DATE }}">Download</a>
-          
-          <a href="${{ github.event.inputs.KERNEL_REPO }}/commits/${{ github.event.inputs.KERNEL_BRANCH }}">Changelogs</a>
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-builds-${{ matrix.branches }}
+          path: |
+            ${{ github.workspace }}/builds/${{ matrix.branches }}/kernel/kernel_build/*.tar
+            ${{ github.workspace }}/builds/${{ matrix.branches }}/kernel/kernel_build/*.zip
 
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-          <b>Device: </b>${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}
-          <b>Kernel Ver: </b>${{ env.KERNEL_VER }}
-          <b>Clang Ver: </b>${{ env.CLANG_VER }}
-          <b>Info: </b>@AnotherZain
+    steps:
+      - name: Gather Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Generate Release
+        run: |
+          export TZ="Asia/Jakarta"
+          BUILD_DATE=$(date "+%Y%m%d%H%M")
+          echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
+          echo "BUILD_REL=${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}_${BUILD_DATE}" >> $GITHUB_ENV
+          {
+            echo "**Build Info**"
+            echo ""
+            echo "**Device:** ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}"
+            echo "**Kernel Source:** ${{ github.event.inputs.KERNEL_REPO }}"
+            echo "**Kernel Version:** ${{ needs.build.outputs.KERNEL_VER }}"
+            echo "**Clang Version:** ${{ needs.build.outputs.CLANG_VER }}"
+            echo "**Notes:**"
+            echo "    - vendor_boot included"
+            echo ""
+            echo "---"
+          } > release.md
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**
+          name: ${{ env.BUILD_REL }}
+          tag_name: ${{ env.BUILD_REL }}
+          body_path: release.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.CHAT_ID }}
+          token: ${{ secrets.BOT_TOKEN }}
+          format: html
+          disable_web_page_preview: true
+          message: |
+            <b>Kernel Update</b>
+
+            <b>Build Date:</b> ${{ env.BUILD_DATE }}
+
+            <b>Device:</b> ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }}
+            <b>Kernel:</b> ${{ needs.build.outputs.KERNEL_VER }}
+            <b>Clang:</b> ${{ needs.build.outputs.CLANG_VER }}
+
+            <b><a href="https://github.com/${{ github.repository }}/releases/tag/${{ env.BUILD_REL }}">Download</a></b>
+
