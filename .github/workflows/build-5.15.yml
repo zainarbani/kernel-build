@@ -127,7 +127,7 @@ jobs:
           format: html
           disable_web_page_preview: true
           message: |
-            <b>Kernel Update</b>
+            <b>Exynoobs Kernel Update</b>
 
             <b>Build Date:</b> ${{ env.BUILD_DATE }}
 
