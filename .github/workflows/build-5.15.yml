@@ -63,8 +63,8 @@ jobs:
         run: |
           cd ${{ github.workspace }}/builds/${{ matrix.branches }}/kernel/kernel_build
           if [[ ${{ matrix.branches }} != "main" ]]; then
-            mv Kernel_a54x.tar Kernel_a54x-${{ matrix.branches }}.tar
-            mv Kernel_a54x.zip Kernel_a54x-${{ matrix.branches }}.zip
+            mv Kernel_a54x.tar Exynoobs_a54x-${{ matrix.branches }}.tar
+            mv Kernel_a54x.zip Exynoobs_a54x-${{ matrix.branches }}.zip
           fi
           
       - name: Upload Artifacts
