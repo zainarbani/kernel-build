@@ -65,6 +65,9 @@ jobs:
           if [[ ${{ matrix.branches }} != "main" ]]; then
             mv Kernel_a54x.tar Exynoobs_a54x-${{ matrix.branches }}.tar
             mv Kernel_a54x.zip Exynoobs_a54x-${{ matrix.branches }}.zip
+          else
+            mv Kernel_a54x.tar Exynoobs_a54x.tar
+            mv Kernel_a54x.zip Exynoobs_a54x.zip
           fi
           
       - name: Upload Artifacts
