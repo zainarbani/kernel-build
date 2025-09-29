@@ -119,6 +119,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Remove Artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: artifacts/**
+
       - name: Update Telegram
         uses: appleboy/telegram-action@master
         with:
