@@ -74,6 +74,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kernel-builds-${{ matrix.branches }}
+          retention-days: 0
           path: |
             ${{ github.workspace }}/builds/${{ matrix.branches }}/kernel/kernel_build/*.tar
             ${{ github.workspace }}/builds/${{ matrix.branches }}/kernel/kernel_build/*.zip
@@ -118,11 +119,6 @@ jobs:
           body_path: release.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Remove Artifacts
-        uses: geekyeggo/delete-artifact@v5
-        with:
-          name: artifacts/**
 
       - name: Update Telegram
         uses: appleboy/telegram-action@master
