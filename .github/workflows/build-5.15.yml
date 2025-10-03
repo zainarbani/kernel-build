@@ -25,7 +25,7 @@ jobs:
     
     strategy:
       matrix:
-        branches: ['main', 'ksu-sus']
+        branches: ['main', 'ksu-sus', 'ksu-next-sus']
 
     outputs:
       CLANG_VER: ${{ steps.build_kernel.outputs.CLANG_VER }}
@@ -119,6 +119,12 @@ jobs:
           body_path: release.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: kernel-builds-*
+          fail-if-no-artifacts: false
 
       - name: Update Telegram
         uses: appleboy/telegram-action@master
