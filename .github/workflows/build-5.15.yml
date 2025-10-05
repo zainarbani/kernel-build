@@ -25,7 +25,7 @@ jobs:
     
     strategy:
       matrix:
-        branches: ['main', 'ksu-sus', 'ksu-next-sus']
+        branches: ['main', 'ksu-sus', 'ksu-next-sus', 'main-oc', 'ksu-sus-oc', 'ksu-next-sus-oc']
 
     outputs:
       CLANG_VER: ${{ steps.build_kernel.outputs.CLANG_VER }}
@@ -44,7 +44,8 @@ jobs:
       - name: Sync Kernel
         run: |
           cd ${{ github.workspace }}/builds/${{ matrix.branches }}
-          git clone --depth=1 -b ${{ matrix.branches }} ${{ github.event.inputs.KERNEL_REPO }} kernel
+          KERNEL_BRANCH=${{ matrix.branches }}
+          git clone --depth=1 -b "${KERNEL_BRANCH/-oc/}" ${{ github.event.inputs.KERNEL_REPO }} kernel
           cd kernel
           git clone --depth=1 -b ${{ github.event.inputs.BUILD_SCRIPT_BRANCH }} ${{ github.event.inputs.BUILD_SCRIPT_REPO }} kernel_build
 
@@ -53,7 +54,11 @@ jobs:
         run: |
           cd ${{ github.workspace }}/builds/${{ matrix.branches }}/kernel
           chmod +x kernel_build/build.sh
-          ./kernel_build/build.sh
+          if [[ ${{ matrix.branches }} == *"-oc"* ]]; then
+            ./kernel_build/build.sh oc
+          else
+            ./kernel_build/build.sh
+          fi
           KERNEL_VER=$(make kernelversion)
           CLANG_VER=$(../toolchain/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')
           echo "KERNEL_VER=${KERNEL_VER}" >> $GITHUB_OUTPUT
