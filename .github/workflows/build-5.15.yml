@@ -111,6 +111,7 @@ jobs:
             echo "**Clang Version:** ${{ needs.build.outputs.CLANG_VER }}"
             echo "**Notes:**"
             echo "    - vendor_boot included"
+            echo "    - install memlog disabler module [optional/recommended]"
             echo ""
             echo "---"
           } > release.md
