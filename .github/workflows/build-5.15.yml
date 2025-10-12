@@ -25,7 +25,7 @@ jobs:
     
     strategy:
       matrix:
-        branches: ['main', 'ksu-sus', 'ksu-next-sus', 'main-oc', 'ksu-sus-oc', 'ksu-next-sus-oc']
+        branches: ['main', 'ksu-next-sus', 'main-oc', 'ksu-next-sus-oc']
 
     outputs:
       CLANG_VER: ${{ steps.build_kernel.outputs.CLANG_VER }}
