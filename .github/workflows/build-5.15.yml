@@ -67,17 +67,15 @@ jobs:
       - name: Prepare Artifacts
         run: |
           cd ${{ github.workspace }}/builds/${{ matrix.branches }}/kernel/kernel_build
-          if [[ ${{ matrix.branches }} != "main" ]]; then
+          if [[ ${{ matrix.branches }} == "main-oc" ]]; then
+            mv Kernel_a54x.tar Exynoobs_a54x-oc.tar
+            mv Kernel_a54x.zip Exynoobs_a54x-oc.zip
+          elif [[ ${{ matrix.branches }} == "main" ]]; then
+            mv Kernel_a54x.tar Exynoobs_a54x.tar
+            mv Kernel_a54x.zip Exynoobs_a54x.zip
+          else
             mv Kernel_a54x.tar Exynoobs_a54x-${{ matrix.branches }}.tar
             mv Kernel_a54x.zip Exynoobs_a54x-${{ matrix.branches }}.zip
-          else
-            if [[ ${{ matrix.branches }} == *"main-oc"* ]]; then
-              mv Kernel_a54x.tar Exynoobs_a54x-oc.tar
-              mv Kernel_a54x.zip Exynoobs_a54x-oc.zip
-            else
-              mv Kernel_a54x.tar Exynoobs_a54x.tar
-              mv Kernel_a54x.zip Exynoobs_a54x.zip
-            fi
           fi
           
       - name: Upload Artifacts
