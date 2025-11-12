@@ -132,7 +132,7 @@ jobs:
         uses: geekyeggo/delete-artifact@v5
         with:
           name: kernel-builds-*
-          fail-if-no-artifacts: false
+          failOnError: false
 
       - name: Update Telegram
         uses: appleboy/telegram-action@master
