@@ -19,7 +19,7 @@ on:
 jobs:
   build:
     if: github.event.repository.owner.id == github.event.sender.id
-    runs-on: buildjet-8vcpu-ubuntu-2204
+    runs-on: namespace-profile-test
     permissions:
       contents: write
     
